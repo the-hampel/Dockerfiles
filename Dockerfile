@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 # get essential packages
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends software-properties-common apt-transport-https curl build-essential ca-certificates curl openssl rsync wget cmake g++ gfortran git libgfortran3 libgmp-dev python-dev clang libclang-dev sudo openssh-client gpg-agent python-pip python-setuptools python-configparser python-jinja2 python-mako python-tornado python-zmq python-notebook libfftw3-dev binutils cython  texlive dvipng texlive-latex-extra texlive-fonts-recommended nodejs npm libnfft3-dev python-backports-shutil-get-terminal-size zlib1g-dev less nano vim libomp-dev\
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends software-properties-common apt-transport-https curl build-essential ca-certificates curl openssl rsync wget cmake g++ gfortran git libgfortran3 libgmp-dev python-dev clang libclang-dev sudo openssh-client gpg-agent python-pip python-setuptools python-configparser python-jinja2 python-mako python-tornado python-zmq libfftw3-dev binutils cython  texlive dvipng texlive-latex-extra texlive-fonts-recommended nodejs npm libnfft3-dev python-backports-shutil-get-terminal-size zlib1g-dev less nano vim libomp-dev\
     && \
     apt-get autoremove --purge -y && \
     apt-get autoclean -y && \
@@ -148,8 +148,10 @@ RUN cd /source && git clone https://github.com/TRIQS/maxent.git maxent.src \
 
 # PyEd Exact diagonalization solver
 RUN cd / && git clone https://github.com/HugoStrand/pyed.git
-
 ENV PYTHONPATH=/pyed:$PYTHONPATH
+
+# download solidmft inside container
+RUN cd / && git clone https://github.com/materialstheory/soliDMFT.git
 
 # remove source
 RUN cd / && rm -rf source
