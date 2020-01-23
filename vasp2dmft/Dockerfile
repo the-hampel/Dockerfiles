@@ -91,7 +91,7 @@ RUN cd && wget -q https://files.pythonhosted.org/packages/74/5d/6f11a5fffc3d8884
     && rm h5py-2.8.0.tar.gz
 
   # needed python packages that dont need manual installation
-  RUN pip install --no-cache-dir matplotlib mpi4py decorator sphinx jupyter ipywidgets jupyterlab clang npm nodejs nbsphinx sphinx-autobuild pandas pandoc shapely descartes ipympl monty==1.0.6 pymatgen==2018.12.12 psutil
+  RUN pip install --no-cache-dir matplotlib mpi4py decorator sphinx jupyter ipywidgets jupyterlab clang npm nodejs nbsphinx sphinx-autobuild pandas pandoc shapely descartes ipympl pymatgen==2018.12.12
 
 # jupyter lab extension
 RUN jupyter-labextension install @jupyter-widgets/jupyterlab-manager \
@@ -129,10 +129,10 @@ RUN cd /source && git clone -b 2.2.x https://github.com/TRIQS/triqs triqs.src \
 ENV TRIQS_ROOT=/triqs
 
 # dft_tools
-RUN cd /source && git clone -b 2.2.x https://github.com/TRIQS/dft_tools.git dft_tools.src \
+RUN cd /source && git clone -b merge_vasp2dmft https://github.com/malte-schueler/dft_tools.git dft_tools.src \
     && mkdir -p dft_tools.build && cd dft_tools.build \
     && cmake ../dft_tools.src -DCMAKE_INSTALL_PREFIX=/triqs -DBuild_Documentation=ON \
-    && make && make -j$(nproc) test && make install
+    && make -j$(nproc) && make install
 
 # cthyb
 RUN cd /source && git clone -b 2.2.x https://github.com/TRIQS/cthyb.git cthyb.src \
@@ -164,6 +164,7 @@ ENV OMP_NUM_THREADS=1
 
 # expose port for jupyter
 EXPOSE 8375
+EXPOSE 8376
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 # copy start script
