@@ -1,0 +1,40 @@
+FROM docker.flatironinstitute.org/ahampel/sci-stack-base 
+
+# W90
+RUN cd / && git clone -b v3.1.0 https://github.com/wannier-developers/wannier90.git wannier90 \
+&& cd /wannier90 \
+# Using gfortran compiler - same as mpif90, mpif90 just links to it anyways
+&& cp ./config/make.inc.gfort ./make.inc \
+# Make gfort use the intel libraries
+&& sed -i 's@^LIBS.*@LIBS = -Wl,--no-as-needed -lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl@' ./make.inc \
+&& make default lib
+
+# VASP for CSC calculations
+ADD csc_vasp.tar.gz /vasp/
+COPY makefile.vasp /vasp/makefile.include
+
+RUN  cd /vasp/ \
+     && make std gam ncl \
+     && rm -rf src/ build/ arch/
+
+# install QE
+RUN wget --quiet https://gitlab.com/QEF/q-e/-/archive/qe-6.6/q-e-qe-6.6.tar.gz \
+   && tar -xf q-e-qe-6.6.tar.gz \
+   && cd /q-e-qe-6.6 \
+   && ./configure
+COPY make_QE.inc /q-e-qe-6.6/make.inc
+RUN cd /q-e-qe-6.6 \
+   && make -j$(nproc) all w90 \
+   && make install \
+   && cd / \
+   && rm -rf q-e-qe-6.6/ \
+   && rm /q-e-qe-6.6.tar.gz
+
+# install elk
+ADD elk-6.2.8-triqs.tar.gz /
+
+RUN cd /elk-6.2.8-triqs/ \
+    && make all 
+
+
+ENV PATH=/elk-6.2.8-triqs/bin:/wannier90:/vasp/bin:${PATH}

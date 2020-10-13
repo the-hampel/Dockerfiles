@@ -1,0 +1,43 @@
+FROM docker.flatironinstitute.org/ahampel/sci-stack-dft
+
+# triqs
+RUN cd / && mkdir -p triqs && mkdir -p source
+
+ENV CPATH=/triqs/include:${CPATH} \
+    PATH=/triqs/bin:${PATH} \
+    LIBRARY_PATH=/triqs/lib:${LIBRARY_PATH} \
+    LD_LIBRARY_PATH=/triqs/lib:${LD_LIBRARY_PATH} \
+    PYTHONPATH=/triqs/lib/python3.8/site-packages:${PYTHONPATH} \
+    CMAKE_PREFIX_PATH=/triqs/share/cmake:${CMAKE_PREFIX_PATH} \
+    TRIQS_ROOT=/triqs
+
+RUN cd /source && git clone -b unstable https://github.com/TRIQS/triqs triqs.src \
+    && mkdir -p triqs.build && cd triqs.build \
+    && cmake ../triqs.src -DCMAKE_INSTALL_PREFIX=/triqs -DMPIEXEC_PREFLAGS='--allow-run-as-root' -DBLAS_LIBRARIES=/lib/x86_64-linux-gnu/libmkl_rt.so \
+    && make -j8 && ctest -j8 && make install
+
+# dft_tools
+RUN cd /source && git clone -b unstable https://github.com/TRIQS/dft_tools.git dft_tools.src \
+    && mkdir -p dft_tools.build && cd dft_tools.build \
+    && cmake ../dft_tools.src -DMPIEXEC_PREFLAGS='--allow-run-as-root' \
+    && make -j8 && ctest -j8 && make install
+
+# cthyb
+RUN cd /source && git clone -b unstable https://github.com/TRIQS/cthyb.git cthyb.src \
+    && mkdir -p cthyb.build && cd cthyb.build \
+    && cmake ../cthyb.src -DMPIEXEC_PREFLAGS='--allow-run-as-root'  \
+    && make -j8 && ctest -j8 && make install
+
+# maxent
+RUN cd /source && git clone -b 1.0.0 --depth 1 https://github.com/TRIQS/maxent.git maxent.src \
+    && mkdir -p maxent.build && cd maxent.build \
+    && cmake ../maxent.src -DCMAKE_INSTALL_PREFIX=/triqs \
+    && make -j8 && make -j8 test && make install
+
+# download solidmft inside container
+RUN cd / && git clone https://github.com/materialstheory/soliDMFT.git
+
+# remove source
+RUN cd / && rm -rf source
+
+
